@@ -6,33 +6,54 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import Create from './components/Create/Create';
+import {useEffect, useState} from 'react';
+import * as gamesService from './services/gameService';
+import Details from './components/Details/Details';
 
 
 function App() {
+
+	const [games, setGames] = useState([]);
+
+	const addComment = (gameId, comment) => {
+		setGames(state => {
+			
+			const game = state.find(x => x._id === gameId);
+			const comments = game.comments || [];
+			comments.push(comment)
+
+			return [
+				...state.filter(x => x._id !== gameId),
+				{...game, comments}, 
+			]
+		})
+	}; 
+
+    useEffect(() => {
+        gamesService.getAll()
+            .then(result => {
+				console.log(result)
+				setGames(result)
+			})
+    }, [])
+
 	return (
 		<div id="box">
 
 			<Header />
 
-			{/* Main Content */}
 			<main id="main-content">
 
 				<Routes>
-					<Route path='/' element={<Home />} />
+					<Route path='/' element={<Home games={games} />} />
 					<Route path='/login' element={<Login />} />
 					<Route path='/register' element={<Register />} />
-					<Route path='/catalogue' element={<Catalogue/>} />
+					<Route path='/catalogue' element={<Catalogue games={games}/>} />
 					<Route path='/create' element={<Create />} />
+					<Route path='/catalogue/:gameId' element={<Details games={games} addComment={addComment} />} />
 				</Routes>
 
 			</main>
-
-			{/* Login Page ( Only for Guest users ) */}
-			{/* Register Page ( Only for Guest users ) */}
-			{/* Create Page ( Only for logged-in users ) */}
-			{/* Edit Page ( Only for the creator )*/}
-			{/*Details Page*/}
-			{/* Catalogue */}
 
 		</div>
 	);
