@@ -14,7 +14,7 @@ const Header = () => {
 					{/* Logged-in users */}
 					<div id="user">
 						<Link to="/create">Create Game</Link>
-						<Link to="javascript:void(0)">Logout</Link>
+						<Link to="/logout">Logout</Link>
 					</div>
 					{/* Guest users */}
 					<div id="guest">

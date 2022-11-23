@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import {useParams, Link} from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Comment from './Comment/Comment';
 
 
@@ -9,13 +9,18 @@ const Details = ({
 }) => {
     const { gameId } = useParams();
     const [comment, setComment] = useState({
-        username: '', 
+        username: '',
         comment: ''
     });
 
+    const [error, setError] = useState({
+        username: '',
+        comment: '',
+    })
+
     const game = games.find(x => x._id === gameId);
     console.log(game)
-    
+
     const addCommentHandler = (ev) => {
         ev.preventDefault();
         const commentObject = `${comment.username}: ${comment.comment}`
@@ -24,7 +29,7 @@ const Details = ({
         // ev.preventDefault();
         comment.username = ''
         comment.comment = ''
-        
+
     }
 
     const onChange = (e) => {
@@ -34,25 +39,44 @@ const Details = ({
         }));
     }
 
+    const validateUsername = (ev) => {
+        const username = ev.target.value;
+        let errorMessage = '';
+
+        if (username.length < 4) {
+            errorMessage = 'Username must be longer than 4 chars'
+        }
+        else if (username.length > 1) {
+            errorMessage = 'Username is too long!'
+        } 
+
+        setError(state => ({
+            ...state,
+            username: errorMessage
+        }))
+    }
+
+
+
     return (
         <section id="game-details">
             <h1>Game Details</h1>
             <div className="info-section">
                 <div className="game-header">
-                    <img className="game-img" src={game.imageUrl} alt="game pic"/>
+                    <img className="game-img" src={game.imageUrl} alt="game pic" />
                     <h1>{game.title}</h1>
                     <span className="levels">MaxLevel: {game.maxLevel}</span>
                     <p className="type">{game.category}</p>
                 </div>
                 <p className="text">{game.summary}</p>
-         
-         
+
+
                 <div className="details-comments">
                     <h2>Comments:</h2>
                     <ul>
-                        {game.comments  ? game.comments.map((c , i) => <Comment key={i}  comment={c}/>)
-                        : <p className="no-comment">No comments.</p>
-                        }    
+                        {game.comments ? game.comments.map((c, i) => <Comment key={i} comment={c} />)
+                            : <p className="no-comment">No comments.</p>
+                        }
                     </ul>
                 </div>
 
@@ -68,17 +92,20 @@ const Details = ({
                 </div>
             </div>
 
-            
+                        {/* TODO: the whole create-comment job should be in a nother component! */}
             <article className="create-comment">
                 <label>Add new comment:</label>
                 <form className="form" onSubmit={addCommentHandler}>
-                    <input 
+                    <input
                         type="text"
                         name='username'
                         placeholder='Name'
                         onChange={onChange}
+                        onBlur={validateUsername}
                         value={comment.username}
                     />
+                    {error.username && 
+                    <div style={{color: 'red'}}>{error.username}</div>}
                     <textarea
                         name="comment"
                         placeholder="Comment......"
