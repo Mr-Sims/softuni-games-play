@@ -4,20 +4,32 @@ import Header from './components/Header/Header';
 import Home from './components/Home/Home';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import Login from './components/Login/Login';
+import Logout from './components/Logout/Logout';
 import Create from './components/Create/Create';
 import { useEffect, useState, lazy, Suspense } from 'react';
 import * as gamesService from './services/gameService';
 import Details from './components/Details/Details';
-import uniqid from 'uniqid'
+import uniqid from 'uniqid';
+import { AuthContext } from './context/authContext';
 
 // import Register from './components/Register/Register';
 const Register = lazy(() => import('./components/Register/Register'));
 
 
+
+
 function App() {
 
 	const [games, setGames] = useState([]);
+
+	const [auth, setAuth] = useState({})
+
 	const navigate = useNavigate();
+
+
+	const userLogin = (authData) => {
+		setAuth(authData)
+	}
 
 
 	const addComment = (gameId, comment) => {
@@ -47,6 +59,7 @@ function App() {
 	}
 
 	useEffect(() => {
+		
 		gamesService.getAll()
 			.then(result => {
 				// console.log(result)
@@ -55,24 +68,27 @@ function App() {
 	}, [])
 
 	return (
-		<div id="box">
+		<AuthContext.Provider value={{user: auth, userLogin}}>
+			<div id="box">
 
-			<Header />
-			<main id="main-content">
-				<Routes>
-					<Route path='/' element={<Home games={games} />} />
-					<Route path='/login' element={<Login />} />
-					<Route path='/register' element={
-						<Suspense fallback={<span>Loading.....</span>}>
-							<Register />
-						</Suspense>}
-					/>
-					<Route path='/catalogue' element={<Catalogue games={games} />} />
-					<Route path='/create' element={<Create addGame={addGame} />} />
-					<Route path='/catalogue/:gameId' element={<Details games={games} addComment={addComment} />} />
-				</Routes>
-			</main>
-		</div>
+				<Header />
+				<main id="main-content">
+					<Routes>
+						<Route path='/' element={<Home games={games} />} />
+						<Route path='/login' element={<Login />} />
+						<Route path='/register' element={
+							<Suspense fallback={<span>Loading.....</span>}>
+								<Register />
+							</Suspense>}
+						/>
+						<Route path='/logout' element={<Logout />} />
+						<Route path='/catalogue' element={<Catalogue games={games} />} />
+						<Route path='/create' element={<Create addGame={addGame} />} />
+						<Route path='/catalogue/:gameId' element={<Details games={games} addComment={addComment} />} />
+					</Routes>
+				</main>
+			</div>
+		</AuthContext.Provider>
 	);
 }
 
