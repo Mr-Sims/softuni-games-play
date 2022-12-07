@@ -1,13 +1,17 @@
-const Create = ({addGame}) => {
+import * as gameService from '../../services/gameService';
 
+import { useContext } from 'react';
+import { GameContext } from '../../context/gameContext';
+
+const Create = () => {
+    const { addGame } = useContext(GameContext);
     const onSubmit = (ev) => {
         ev.preventDefault();
         const gameData = Object.fromEntries(new FormData(ev.target));
-        addGame(gameData)
-
-        // ev.target.reset()
-
-
+        gameService.create(gameData)
+            .then(game => {
+                addGame(game)
+            })
     }
     return (
         <section id="create-page" className="auth">
