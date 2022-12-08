@@ -1,12 +1,20 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Comment from './Comment/Comment';
-
+import { useContext } from 'react';
+import { AuthContext } from '../../context/authContext';
 
 const Details = ({
     games,
     addComment
 }) => {
+
+    const { user } = useContext(AuthContext)
+
+    console.log(user)
+
+
+
     const { gameId } = useParams();
     const [comment, setComment] = useState({
         username: '',
@@ -19,7 +27,11 @@ const Details = ({
     })
 
     const game = games.find(x => x._id === gameId);
+    console.log('game Id', game._id)
+    console.log('ownerId', game._ownerId)
     console.log(game)
+    
+
 
     const addCommentHandler = (ev) => {
         ev.preventDefault();
@@ -82,14 +94,18 @@ const Details = ({
 
 
                 {/* Edit/Delete buttons ( Only for creator of this game )  */}
-                <div className="buttons">
-                    <Link to="#" className="button">
-                        Edit
-                    </Link>
-                    <Link to="#" className="button">
-                        Delete
-                    </Link>
-                </div>
+                {user._id === game._ownerId 
+                    ? <div className="buttons">
+                        <Link to={`/edit/${gameId}`} className="button">
+                            Edit
+                        </Link>
+                        <Link to="#" className="button">
+                            Delete
+                        </Link>
+                    </div>
+                    : null    
+            }
+            
             </div>
 
                         {/* TODO: the whole create-comment job should be in a nother component! */}
