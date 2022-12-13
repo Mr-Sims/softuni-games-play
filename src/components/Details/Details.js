@@ -1,100 +1,63 @@
-import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Comment from './Comment/Comment';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from '../../context/authContext';
+import { GameContext } from '../../context/gameContext';
+import * as gamesService from '../../services/gameService';
+import * as commentService from '../../services/commentService';
 
-const Details = ({
-    games,
-    addComment
-}) => {
-
+const Details = () => {
+    const { addComment, fetchGameDetails, selectGame } = useContext(GameContext)
     const { user } = useContext(AuthContext)
-
-    console.log(user)
-
-
-
-    const { gameId } = useParams();
-    const [comment, setComment] = useState({
-        username: '',
-        comment: ''
-    });
-
-    const [error, setError] = useState({
-        username: '',
-        comment: '',
-    })
-
-    const game = games.find(x => x._id === gameId);
-    console.log('game Id', game._id)
-    console.log('ownerId', game._ownerId)
-    console.log(game)
     
+    const { gameId } = useParams();
 
+    const currentGame = selectGame(gameId);
 
-    const addCommentHandler = (ev) => {
-        ev.preventDefault();
-        const commentObject = `${comment.username}: ${comment.comment}`
-        addComment(gameId, commentObject)
-        // console.log(commentObject)
-        // ev.preventDefault();
-        comment.username = ''
-        comment.comment = ''
+    useEffect(() => {
+        gamesService.getOne(gameId)
+            .then(result=> {
+                fetchGameDetails(gameId, result) 
+            });
+    }, [])
 
+    const addCommentHandler = (e) => { 
+        e.preventDefault();
+        const formData = new FormData(e.target)
+        const comment = formData.get('comment')
+       
+        commentService.create(gameId, comment)
+            .then(result => {
+                 addComment(gameId, comment)
+            });
     }
-
-    const onChange = (e) => {
-        setComment(state => ({
-            ...state,
-            [e.target.name]: e.target.value
-        }));
-    }
-
-    const validateUsername = (ev) => {
-        const username = ev.target.value;
-        let errorMessage = '';
-
-        if (username.length < 4) {
-            errorMessage = 'Username must be longer than 4 chars'
-        }
-        else if (username.length > 1) {
-            errorMessage = 'Username is too long!'
-        } 
-
-        setError(state => ({
-            ...state,
-            username: errorMessage
-        }))
-    }
-
-
 
     return (
         <section id="game-details">
             <h1>Game Details</h1>
             <div className="info-section">
                 <div className="game-header">
-                    <img className="game-img" src={game.imageUrl} alt="game pic" />
-                    <h1>{game.title}</h1>
-                    <span className="levels">MaxLevel: {game.maxLevel}</span>
-                    <p className="type">{game.category}</p>
+                    <img className="game-img" src={currentGame.imageUrl} alt="game pic" />
+                    <h1>{currentGame.title}</h1>
+                    <span className="levels">MaxLevel: {currentGame.maxLevel}</span>
+                    <p className="type">{currentGame.category}</p>
                 </div>
-                <p className="text">{game.summary}</p>
-
+                <p className="text">{currentGame.summary}</p>
 
                 <div className="details-comments">
                     <h2>Comments:</h2>
                     <ul>
-                        {game.comments ? game.comments.map((c, i) => <Comment key={i} comment={c} />)
-                            : <p className="no-comment">No comments.</p>
-                        }
+                        {currentGame.comments?.map(x =>
+                            <li className="comment"><p>{x}</p></li>
+                        )}
                     </ul>
+                        {!currentGame.comments && 
+                            <p className="no-comment">No comments.</p>}
+
                 </div>
 
-
                 {/* Edit/Delete buttons ( Only for creator of this game )  */}
-                {user._id === game._ownerId 
+                {user._id === currentGame._ownerId 
                     ? <div className="buttons">
                         <Link to={`/edit/${gameId}`} className="button">
                             Edit
@@ -105,28 +68,16 @@ const Details = ({
                     </div>
                     : null    
             }
-            
             </div>
 
                         {/* TODO: the whole create-comment job should be in a nother component! */}
             <article className="create-comment">
                 <label>Add new comment:</label>
                 <form className="form" onSubmit={addCommentHandler}>
-                    <input
-                        type="text"
-                        name='username'
-                        placeholder='Name'
-                        onChange={onChange}
-                        onBlur={validateUsername}
-                        value={comment.username}
-                    />
-                    {error.username && 
-                    <div style={{color: 'red'}}>{error.username}</div>}
+                  
                     <textarea
                         name="comment"
                         placeholder="Comment......"
-                        onChange={onChange}
-                        value={comment.comment}
                     />
                     <input
                         className="btn submit"

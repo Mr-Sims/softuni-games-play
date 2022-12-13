@@ -1,7 +1,7 @@
 import './App.css';
 
-import { useEffect, useState, lazy, Suspense } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
 
 import Catalogue from './components/Catalogue/Catalogue';
 import Header from './components/Header/Header';
@@ -12,93 +12,26 @@ import Create from './components/Create/Create';
 import Details from './components/Details/Details';
 import Edit from './components/Edit/Edit';
 
-import * as gamesService from './services/gameService';
-import { useLocalStorage } from './hooks/useLocalStorage';
+// import * as gamesService from './services/gameService';
+// import { useLocalStorage } from './hooks/useLocalStorage';
 
-import { AuthContext } from './context/authContext';
-import { GameContext } from './context/gameContext';
+import { AuthProvider } from './context/authContext';
+import { GameProvider } from './context/gameContext';
 
 
 // import Register from './components/Register/Register';
 const Register = lazy(() => import('./components/Register/Register'));
 
 
-
-
 function App() {
-
-	const [games, setGames] = useState([]);
-
-	const [auth, setAuth] = useLocalStorage('auth', {})
-
-	const navigate = useNavigate();
-
-
-	const userLogin = (authData) => {
-		setAuth(authData)
-	}
-
-	const userLogout = () => {
-		setAuth({})
-	}
-
-
-	const addComment = (gameId, comment) => {
-		setGames(state => {
-
-			const game = state.find(x => x._id === gameId);
-			const comments = game.comments || [];
-			comments.push(comment)
-
-			return [
-				...state.filter(x => x._id !== gameId),
-				{ ...game, comments },
-			]
-		})
-	};
-
-	const addGame = (gameData) => {
-		setGames(state => [
-			...state,
-			{
-				...gameData,
-			},
-		])
-		navigate(`/catalogue/${gameData._id}`)
-	}
-
-	const editGame = (gameId, gameData) => {
-		setGames(state => {
-			return [
-				...state.filter(x => x._id !== gameId),
-				{...gameData}
-			]
-		})
-		// setGames(state => state.map(x => x._id === gameId ? gameData : x));
-		// console.log(`gameData ID: `, gameData._id)
-		// console.log(`gameId: `, gameId)
-		navigate(`catalogue/${gameData._id}`)
-	}
-
-	useEffect(() => {
-
-		gamesService.getAll()
-			.then(result => {
-				// console.log(result)
-				setGames(result)
-			})
-	}, [])
-
 	return (
-		<AuthContext.Provider value={{ user: auth, userLogin, userLogout }}>
+		<AuthProvider>
 			<div id="box">
-
 				<Header />
-
-				<GameContext.Provider value={{ games, addGame, editGame }}>
+				<GameProvider>
 					<main id="main-content">
 						<Routes>
-							<Route path='/' element={<Home games={games} />} />
+							<Route path='/' element={<Home />} />
 							<Route path='/login' element={<Login />} />
 							<Route path='/register' element={
 								<Suspense fallback={<span>Loading.....</span>}>
@@ -106,15 +39,15 @@ function App() {
 								</Suspense>}
 							/>
 							<Route path='/logout' element={<Logout />} />
-							<Route path='/catalogue' element={<Catalogue games={games} />} />
+							<Route path='/catalogue' element={<Catalogue />} />
 							<Route path='/create' element={<Create />} />
 							<Route path='/edit/:gameId' element={<Edit />} />
-							<Route path='/catalogue/:gameId' element={<Details games={games} addComment={addComment} />} />
+							<Route path='/catalogue/:gameId' element={<Details />} />
 						</Routes>
 					</main>
-				</GameContext.Provider>
+				</GameProvider>
 			</div>
-		</AuthContext.Provider>
+		</AuthProvider>
 	);
 }
 

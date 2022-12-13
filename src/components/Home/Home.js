@@ -1,7 +1,10 @@
 
+import { useContext } from 'react';
+import { GameContext } from '../../context/gameContext';
 import LatestGame from './LatestGame/LatestGame';
 
-const Home = ({games}) => {
+const Home = () => {
+    const { games } = useContext(GameContext)
     console.log({games})
 
     return (
