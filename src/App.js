@@ -12,6 +12,9 @@ import Create from './components/Create/Create';
 import Details from './components/Details/Details';
 import Edit from './components/Edit/Edit';
 
+import PrivateRoute from './components/Common/PrivateRoute';
+import PrivateGuard from './components/Common/PrivateGuard';
+
 // import * as gamesService from './services/gameService';
 // import { useLocalStorage } from './hooks/useLocalStorage';
 
@@ -40,8 +43,14 @@ function App() {
 							/>
 							<Route path='/logout' element={<Logout />} />
 							<Route path='/catalogue' element={<Catalogue />} />
-							<Route path='/create' element={<Create />} />
-							<Route path='/edit/:gameId' element={<Edit />} />
+							<Route path='/create' element={(
+								<PrivateRoute>
+									<Create />
+								</PrivateRoute>
+							)} />
+							<Route element={<PrivateGuard />} >
+								<Route path='/edit/:gameId' element={<Edit />} />
+							</Route>
 							<Route path='/catalogue/:gameId' element={<Details />} />
 						</Routes>
 					</main>

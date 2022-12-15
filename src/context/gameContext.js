@@ -16,6 +16,9 @@ const gameReducer = (state, action) => {
 			return state.map(x => x._id === action.gameId ? action.payload : x);
 		case 'ADD_COMMENT':
 			return state.map(x => x._id === action.gameId ? { ...x, comments: [...x.comments, action.payload] } : x);
+		case 'REMOVE_GAME':
+			return state.filter(x => x._id !== action.gameId)
+		
 		default:
 			return state;
 	}
@@ -34,6 +37,7 @@ export const GameProvider = ({
 					type: 'ADD_GAMES',
 					payload: result
 				};
+
 				dispatch(action);
 			});
 	}, []);
@@ -46,7 +50,7 @@ export const GameProvider = ({
 		dispatch({
 			type: 'FETCH_GAME_DETAILS',
 			payload: gameDetails,
-			gameId
+			gameId,
 		})
 	}
 
@@ -109,10 +113,24 @@ export const GameProvider = ({
 		navigate(`catalogue/${gameData._id}`)
 	}
 
+	const removeGame = (gameId) => {
+		dispatch({
+			type: 'REMOVE_GAME',
+			gameId
+		})
+	}
 
 
 	return (
-		<GameContext.Provider value={{ games, addGame, editGame, addComment, fetchGameDetails, selectGame }} >
+		<GameContext.Provider value={{ 
+			games, 
+			addGame, 
+			editGame, 
+			addComment, 
+			fetchGameDetails, 
+			selectGame, 
+			removeGame 
+		}} >
 			{children}
 		</GameContext.Provider>
 	);

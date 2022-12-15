@@ -1,35 +1,51 @@
 import { useParams, Link } from 'react-router-dom';
-import Comment from './Comment/Comment';
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../../context/authContext';
 import { GameContext } from '../../context/gameContext';
 import * as gamesService from '../../services/gameService';
 import * as commentService from '../../services/commentService';
+import { useNavigate } from 'react-router-dom';
+
 
 const Details = () => {
-    const { addComment, fetchGameDetails, selectGame } = useContext(GameContext)
-    const { user } = useContext(AuthContext)
+    const navigate = useNavigate();
+    const { addComment, fetchGameDetails, selectGame, removeGame } = useContext(GameContext);
+    const { user } = useContext(AuthContext);
     
     const { gameId } = useParams();
 
     const currentGame = selectGame(gameId);
 
     useEffect(() => {
-        gamesService.getOne(gameId)
-            .then(result=> {
-                fetchGameDetails(gameId, result) 
-            });
+
+        (async () => {
+            const gameDetails = await gamesService.getOne(gameId);
+            const gameComments = await commentService.getByGameId(gameId);
+
+            fetchGameDetails(gameId, { ...gameDetails, comments: gameComments.map(x => `${x.user.email}: ${x.text}`) }); 
+        })();
     }, [])
 
     const addCommentHandler = (e) => { 
         e.preventDefault();
-        const formData = new FormData(e.target)
-        const comment = formData.get('comment')
+        const formData = new FormData(e.target);
+        const comment = formData.get('comment');
        
         commentService.create(gameId, comment)
             .then(result => {
                  addComment(gameId, comment)
             });
+    };
+
+    const gameDeleteHandler = () => {
+        const confirmation = window.confirm('Are you sure you want to delete this game?');
+        if(confirmation) {
+            gamesService.remove(gameId)
+                .then(() => {
+                    removeGame(gameId)
+                    navigate('/catalogue')
+                });
+        }
     }
 
     return (
@@ -48,7 +64,9 @@ const Details = () => {
                     <h2>Comments:</h2>
                     <ul>
                         {currentGame.comments?.map(x =>
-                            <li className="comment"><p>{x}</p></li>
+                            <li key={x} className="comment">
+                                <p>{x}</p>
+                            </li>
                         )}
                     </ul>
                         {!currentGame.comments && 
@@ -62,9 +80,9 @@ const Details = () => {
                         <Link to={`/edit/${gameId}`} className="button">
                             Edit
                         </Link>
-                        <Link to="#" className="button">
+                        <button onClick={gameDeleteHandler} className="button">
                             Delete
-                        </Link>
+                        </button>
                     </div>
                     : null    
             }

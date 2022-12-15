@@ -4,7 +4,7 @@ import { useAuthContext } from '../../context/authContext';
 
 const Header = () => {
 	const {user} = useAuthContext()
-	console.log(user.accessToken)
+	// console.log(user.accessToken)
     return (
         <header>
 				{/* Navigation */}
